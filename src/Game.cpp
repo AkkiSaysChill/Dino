@@ -1,11 +1,10 @@
 #include "Game.h"
 #include <iostream>
 #include <random>
+#include <SDL_image.h>
 #include <algorithm>  // For std::remove_if
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 
-// Constants (can be adjusted)
+//Constants (can be adjusted)
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
 const double INITIAL_GAME_SPEED = 200.0;
@@ -13,7 +12,9 @@ const double SPEED_INCREASE_RATE = 10.0;  // Increase speed over time
 const double OBSTACLE_SPAWN_RATE = 1.5; // Seconds between spawns
 const int GROUND_LEVEL = SCREEN_HEIGHT - 50;
 
-Game::Game() : isRunning(false), window(nullptr), renderer(nullptr), score(0), gameSpeed(INITIAL_GAME_SPEED), cactusTexture(nullptr) {}
+
+
+Game::Game() : isRunning(false), window(nullptr), renderer(nullptr), score(0), gameSpeed(INITIAL_GAME_SPEED) {}
 
 Game::~Game() {
     close();
@@ -40,32 +41,26 @@ bool Game::init() {
         return false;
     }
 
-    // Initialize PNG loading
+    //Initialize PNG loading
     int imgFlags = IMG_INIT_PNG;
-    if (!(IMG_Init(imgFlags) & imgFlags)) {
+    if(!(IMG_Init(imgFlags) & imgFlags)) {
         std::cerr << "SDL_image could not initialize! SDL_image Error: " << IMG_GetError() << std::endl;
         return false;
     }
-
-    // Load cactus texture for obstacles
-    cactusTexture = IMG_LoadTexture(renderer, "assets/cactus.png");
-    if (cactusTexture == nullptr) {
-        std::cerr << "Failed to load cactus texture! SDL_image Error: " << IMG_GetError() << std::endl;
-        return false;
-    }
-
-    // Initialize Dino and other game elements
-    if (!dino.init(renderer, "assets/dino.png", 100, GROUND_LEVEL)) {
-        std::cerr << "Failed to initialize Dino!" << std::endl;
+        //Initialize Dino and other game elements.
+    if (!dino.init(renderer, "assets/dino.png", 100, GROUND_LEVEL)) // Use PNG
+    {
+         std::cerr << "Failed to initialize Dino!" << std::endl;
         return false;
     }
 
     return true;
 }
 
+
 void Game::run() {
     isRunning = true;
-    double lastTime = SDL_GetTicks() / 1000.0; // Time in seconds
+    double lastTime = SDL_GetTicks() / 1000.0; //Time in seconds
     double accumulator = 0.0;
     double obstacleTimer = 0.0;  // Timer for obstacle spawning
 
@@ -76,7 +71,7 @@ void Game::run() {
 
         accumulator += frameTime;
 
-        // Fixed timestep for updates
+        //Fixed timestep for updates
         const double deltaTime = 1.0 / 60.0;  // 60 FPS (Update at 60Hz)
         while (accumulator >= deltaTime) {
             handleInput();
@@ -84,44 +79,35 @@ void Game::run() {
             accumulator -= deltaTime;
             obstacleTimer += deltaTime;
 
-            if (obstacleTimer >= OBSTACLE_SPAWN_RATE) {
+            if(obstacleTimer >= OBSTACLE_SPAWN_RATE) {
                 spawnObstacle();
                 obstacleTimer = 0.0; // Reset timer.
             }
         }
 
-        // Cap the frame rate to 60 FPS.
-        int frameDelay = 1000 / 60; // Milliseconds per frame
-        int frameTimeMillis = SDL_GetTicks() - currentTime;
-        if (frameTimeMillis < frameDelay) {
-            SDL_Delay(frameDelay - frameTimeMillis);
-        }
 
         render(); // Render as fast as possible (or capped by VSync)
     }
 }
 
-
-bool Game::handleInput() {
+void Game::handleInput() {
     SDL_Event e;
     while (SDL_PollEvent(&e) != 0) {
         if (e.type == SDL_QUIT) {
             isRunning = false;
-            return true; // Return true if the input was handled
         }
         else if (e.type == SDL_KEYDOWN) {
-            if (e.key.keysym.sym == SDLK_SPACE || e.key.keysym.sym == SDLK_UP) {
+           if (e.key.keysym.sym == SDLK_SPACE || e.key.keysym.sym == SDLK_UP)
+            {
                 dino.jump();
-                return true; // Return true if input was handled
             }
         }
+
     }
-    return false; // No input handled
 }
 
-
 void Game::update(double deltaTime) {
-    dino.update(deltaTime, GROUND_LEVEL);
+   dino.update(deltaTime, GROUND_LEVEL);
     // Update obstacles
     for (Obstacle& obs : obstacles) {
         obs.update(deltaTime, gameSpeed);
@@ -133,44 +119,53 @@ void Game::update(double deltaTime) {
 
     // Check for collisions
     if (checkCollision()) {
-        // Game over logic here (for now, we will just stop the game)
-        isRunning = false;
+       // isRunning = false; // End the game (for now)
+        //  std::cout << "Game Over! Score: " << static_cast<int>(score) << std::endl; // cast to int for whole number
+        //TODO: Implement game over screen, restart, etc.
     }
 
-    // Update score
+      // Update score
     score += gameSpeed * deltaTime * 0.1; // Score increases with game speed and time
 
     // Increase game speed gradually
     gameSpeed += SPEED_INCREASE_RATE * deltaTime;
 }
 
+
 void Game::render() {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // White background
     SDL_RenderClear(renderer);
 
-    // Draw ground (simple line)
+    //Draw ground (simple line)
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Black
     SDL_RenderDrawLine(renderer, 0, GROUND_LEVEL, SCREEN_WIDTH, GROUND_LEVEL);
+
 
     // Render dino
     dino.render(renderer);
 
-    // Render obstacles
-    for (Obstacle& obs : obstacles) {
+    //Render obstacles
+    for(Obstacle& obs : obstacles){
         obs.render(renderer);
     }
+
 
     SDL_RenderPresent(renderer);
 }
 
 void Game::spawnObstacle() {
-    // Create obstacle and use the cactus texture
-    Obstacle newObstacle;
-    if (!newObstacle.init(renderer, cactusTexture, SCREEN_WIDTH, GROUND_LEVEL)) {
+    // Randomly choose obstacle type (for now, just a cactus)
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(0, 1); // Simple distribution, 0 or 1.
+    int obstacleType = distrib(gen);
+
+     Obstacle newObstacle;
+     if(!newObstacle.init(renderer, "assets/cactus.png", SCREEN_WIDTH, GROUND_LEVEL)) { // Use PNG
         std::cerr << "Failed to initialize obstacle" << std::endl;
         return;
-    }
-    obstacles.push_back(newObstacle);
+     }
+     obstacles.push_back(newObstacle);
 }
 
 bool Game::checkCollision() {
@@ -187,7 +182,6 @@ bool Game::checkCollision() {
 
 void Game::close() {
     // Destroy window and renderer
-    SDL_DestroyTexture(cactusTexture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     renderer = nullptr;

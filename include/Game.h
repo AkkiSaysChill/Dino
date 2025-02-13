@@ -16,7 +16,7 @@ public:
     void close();
 
 private:
-    bool handleInput();
+    void handleInput();
     void update(double deltaTime);
     void render();
     void spawnObstacle();

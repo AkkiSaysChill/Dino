@@ -1,5 +1,5 @@
 #include "Dino.h"
-#include <SDL2/SDL_image.h>
+#include <SDL_image.h>
 #include <iostream>
 
 Dino::Dino() : texture(nullptr), yVelocity(0), isJumping(false) {

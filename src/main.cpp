@@ -1,13 +1,11 @@
 #include "Game.h"
-#include <iostream>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 
-int SDL_main(int argc, char* argv[]) { // Rename main to SDL_main
+int main(int argc, char* argv[]) {
     Game game;
-    if (game.init()) {
-        game.run();
+    if (!game.init()) {
+        return 1;
     }
+    game.run();
+    game.close();
     return 0;
 }
-

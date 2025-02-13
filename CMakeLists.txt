@@ -1,29 +1,25 @@
 cmake_minimum_required(VERSION 3.10)
 project(DinoGame)
 
-set(CMAKE_CXX_STANDARD 17)  # Use C++17 standard
+set(CMAKE_CXX_STANDARD 17)
 
-# Find SDL2 and SDL2_image
 find_package(SDL2 REQUIRED)
-find_package(SDL2_image REQUIRED)  # Include SDL2_image package
-find_package(SDL2_ttf REQUIRED)  # If you're using fonts
-# find_package(SDL2_mixer REQUIRED)  # Uncomment if you're using sound
+find_package(SDL2_image REQUIRED)
 
-# Include directories for SDL2
-include_directories(${CMAKE_SOURCE_DIR}/include ${SDL2_INCLUDE_DIRS} ${SDL2_IMAGE_INCLUDE_DIRS} ${SDL2_TTF_INCLUDE_DIRS})
-
-# Source files
-file(GLOB_RECURSE SOURCE_FILES "src/*.cpp")
-
-# Create executable
-add_executable(DinoGame ${SOURCE_FILES})
-
-# Link SDL2 and SDL2_image libraries
-target_link_libraries(DinoGame 
-    ${SDL2_LIBRARIES} 
-    ${SDL2_IMAGE_LIBRARIES} 
-    ${SDL2_TTF_LIBRARIES} 
+include_directories(
+    ${CMAKE_SOURCE_DIR}/include
+    ${SDL2_INCLUDE_DIRS}
+    ${SDL2_IMAGE_INCLUDE_DIRS}
 )
 
-# If you're using sound, uncomment the line below
-# target_link_libraries(DinoGame ${SDL2_MIXER_LIBRARIES})
+file(GLOB_RECURSE SOURCE_FILES "src/*.cpp")
+
+add_executable(DinoGame ${SOURCE_FILES})
+
+# Correct Linking: Use the plain names, NOT the targets.
+target_link_libraries(DinoGame
+    SDL2main  #  SDL2main FIRST, and use the plain name, not SDL2::SDL2main
+    ${SDL2_LIBRARIES}  # This will include libSDL2.dll.a (or libSDL2.a)
+    ${SDL2_IMAGE_LIBRARIES} # This will include libSDL2_image.dll.a
+    -lSDL2_image
+)

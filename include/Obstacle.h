@@ -1,24 +1,19 @@
 #ifndef OBSTACLE_H
 #define OBSTACLE_H
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include <SDL.h>
 
 class Obstacle {
-public:
+    public:
     Obstacle();
     ~Obstacle();
-
-    bool init(SDL_Renderer* renderer, SDL_Texture* texture, int x, int y);
-    void update(double deltaTime, double speed);
+    bool init(SDL_Renderer* renderer, const char* imagePath, int x, int y); // Corrected
+    void update(double deltaTime, double gameSpeed);
     void render(SDL_Renderer* renderer);
     bool isOffScreen() const;
     SDL_Rect getCollisionRect() const;
 
-private:
+    private:
     SDL_Texture* texture;
     SDL_Rect rect;
-    double speed;
 };
-
-#endif // OBSTACLE_H
+#endif
